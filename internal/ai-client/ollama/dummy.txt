@@ -1,0 +1,119 @@
+package ollama
+
+import (
+	database "DeepPacketAI/internal/storage"
+	"DeepPacketAI/pkg/config"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/tiktoken-go/tokenizer"
+)
+
+type Request struct {
+	Model    string    `json:"model"`
+	Messages []Message `json:"messages"`
+	Stream   bool      `json:"stream"`
+}
+
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type Response struct {
+	Model              string    `json:"model"`
+	CreatedAt          time.Time `json:"created_at"`
+	Message            Message   `json:"message"`
+	Done               bool      `json:"done"`
+	TotalDuration      int64     `json:"total_duration"`
+	LoadDuration       int       `json:"load_duration"`
+	PromptEvalCount    int       `json:"prompt_eval_count"`
+	PromptEvalDuration int       `json:"prompt_eval_duration"`
+	EvalCount          int       `json:"eval_count"`
+	EvalDuration       int64     `json:"eval_duration"`
+}
+
+func Ollama_ai_process() {
+
+	var defaultOllamaURL string = config.Input.Url
+	var defaultOllamaModel string = config.Input.Model
+	jsonData, err := json.Marshal(database.AI_Input[0:20])
+	if err != nil {
+		fmt.Println("Error marshalling data:", err)
+		return
+	}
+	jsonDataPretty, err := PrettyString(string(jsonData))
+	if err != nil {
+		log.Fatal(err)
+	}
+	// fmt.Println(jsonDataPretty)
+	// 	prompt := fmt.Sprintf("I am sharing a pcap data in the format of json data frame by frame for a telecom network trace. Each frame has 5 Parameters:\n
+	//   - Src_IpAddr: Source IP address\n
+	//   - Dst_IpAddr: Destination IP address\n
+	//   - Time_Stamp: Timestamp of the packet\n
+	//   - Frame_Number: Sequential frame number for packet ordering\n
+	//   - Message: Map containing decoded packet content.\n Go through each of the frame throughly and %s in the below data:\n\n%s", config.Input.Prompt, string(jsonData))
+
+	// prompt := fmt.Sprintf("I am sharing a pcap data in the format of json data frame by frame for a telecom network trace. These are the messages in 5G core in HTTP2 protocol. The messages are in the format according to 3GPP specification for 5G systems. Each frame/packet entry has 5 Parameters:\n - Src_IpAddr: Source IP address\n- Dst_IpAddr: Destination IP address\n- Time_Stamp: Timestamp of the packet\n- Frame_Number: Sequential frame number for packet ordering\n- Message: Map containing decoded packet content.\n Go through each parameter of the frame throughly. The values like imsi might be as part of a complete message and would be found as \"imsi-\" or \"supi\" in path or location or message parameters.For example in frame 214 or 224 or 201 or 207 below. e.g., In frame number 224,\":path\": \"/namf-comm/v1/ue-contexts/imsi-2089300007487/n1-n2-messages\" has imsi value as 2089300007487. Also, in frame number 201, we see \"location\": \"http://127.0.0.1:29507/npcf-smpolicycontrol/v1/sm-policies/imsi-2089300007487-10\" - here imsi is 2089300007487. Also, in frame number 202, we find in Message parameter has a term called \"supi\" which shows the imsi value as  2089300007487. Similarly, other parameters as well could be found as a substring. Go through each line of given data below. %s \nData: \"%s\"", config.Input.Prompt, string(jsonData))
+	prompt := fmt.Sprintf("%s in the below data:\n%s", config.Input.Prompt, string(jsonDataPretty))
+
+	// Initialize context for API request lifecycle
+	start := time.Now()
+	msg := Message{
+		Role:    "user",
+		Content: prompt,
+	}
+	req := Request{
+		Model:    defaultOllamaModel,
+		Stream:   false,
+		Messages: []Message{msg},
+	}
+	// fmt.Println(req.Messages)
+	getTokens(prompt)
+	resp, err := talkToOllama(defaultOllamaURL, req)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	fmt.Println(resp.Message.Content)
+	fmt.Printf("Completed in %v", time.Since(start))
+}
+
+func talkToOllama(url string, ollamaReq Request) (*Response, error) {
+	js, err := json.Marshal(&ollamaReq)
+	if err != nil {
+		return nil, err
+	}
+	client := http.Client{}
+	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(js))
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(httpReq)
+	httpResp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResp.Body.Close()
+	ollamaResp := Response{}
+	err = json.NewDecoder(httpResp.Body).Decode(&ollamaResp)
+	// fmt.Println(ollamaResp)
+	return &ollamaResp, err
+}
+
+func getTokens(prompt string) {
+	enc, err := tokenizer.Get(tokenizer.Cl100kBase)
+	if err != nil {
+		panic("oh oh")
+	}
+
+	// this should print a list of token ids
+	ids, _, _ := enc.Encode(prompt)
+	// fmt.Println(ids)
+	fmt.Println("Context Length =", len(ids))
+}
