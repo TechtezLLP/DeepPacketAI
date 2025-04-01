@@ -1,0 +1,140 @@
+1. Go Module Issues
+Error: cannot find module providing package github.com/yourusername/DeepPacketAI/...
+Solution:
+
+Ensure you are in the project directory and run:
+
+sh
+Copy
+Edit
+go mod tidy
+If using a local module, replace the module path in go.mod:
+
+sh
+Copy
+Edit
+go mod edit -replace github.com/yourusername/DeepPacketAI=.
+2. API Key Issues
+Error: Invalid API key or Authentication failed
+Solution:
+
+Set environment variables correctly:
+
+sh
+Copy
+Edit
+export OPENAI_API_KEY=your_openai_key
+export GEMINI_API_KEY=your_gemini_key
+(For Windows, use set instead of export)
+
+3. Compilation Errors
+Error: undefined: some_function
+Solution:
+
+Ensure all dependencies are installed:
+
+sh
+Copy
+Edit
+go mod tidy
+Check if your Go version is 1.21+ using:
+
+sh
+Copy
+Edit
+go version
+4. Binary Not Found After Build
+Error: ./bin/deep_packet_ai: No such file or directory
+Solution:
+
+Run make build and verify the bin/ directory exists. If using Windows, manually build:
+
+sh
+Copy
+Edit
+go build -o bin/deep_packet_ai cmd/analyzer/main.go
+5. SQLite Database Errors
+Error: database file is locked
+Solution:
+
+Ensure no other process is using the database. Restart your system or manually unlock it:
+
+sh
+Copy
+Edit
+rm -f /tmp/sqlite.lock
+
+Build-Instructions:
+
+Build and Run Instructions
+For Linux & macOS
+Install dependencies:
+
+sh
+Copy
+Edit
+sudo apt update && sudo apt install -y sqlite3 make
+(For macOS, use brew install sqlite3 make instead.)
+
+Clone the repository:
+
+sh
+Copy
+Edit
+git clone https://github.com/yourusername/DeepPacketAI.git
+cd DeepPacketAI
+Set environment variables:
+
+sh
+Copy
+Edit
+export OPENAI_API_KEY="your_openai_key"
+export GEMINI_API_KEY="your_gemini_key"
+Build the project:
+
+sh
+Copy
+Edit
+make build
+Run the analyzer:
+
+sh
+Copy
+Edit
+./bin/deep_packet_ai
+For Windows
+Install dependencies:
+
+Download and install Go (https://go.dev/dl/)
+
+Install SQLite (https://www.sqlite.org/download.html)
+
+Ensure make is available (or use mingw32-make)
+
+Clone the repository:
+
+powershell
+Copy
+Edit
+git clone https://github.com/yourusername/DeepPacketAI.git
+cd DeepPacketAI
+Set environment variables:
+
+powershell
+Copy
+Edit
+$env:OPENAI_API_KEY="your_openai_key"
+$env:GEMINI_API_KEY="your_gemini_key"
+Build the project:
+
+powershell
+Copy
+Edit
+go build -o bin\deep_packet_ai.exe cmd\analyzer\main.go
+Run the analyzer:
+
+powershell
+Copy
+Edit
+bin\deep_packet_ai.exe
+
