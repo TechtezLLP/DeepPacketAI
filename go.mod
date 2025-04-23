@@ -12,7 +12,7 @@ require (
 	github.com/pion/rtcp v1.2.15
 	github.com/sashabaranov/go-openai v1.37.0
 	github.com/sipcapture/heplify v1.67.0
-	golang.org/x/net v0.35.0
+	golang.org/x/net v0.36.0
 	google.golang.org/api v0.186.0
 )
 
@@ -83,7 +83,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.26.0 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20231121144256-b99613f794b6 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	golang.org/x/exp v0.0.0-20250218142911-aa4b98e5adaa // indirect
 	golang.org/x/image v0.22.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
