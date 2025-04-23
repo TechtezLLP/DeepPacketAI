@@ -12,7 +12,7 @@ require (
 	github.com/pion/rtcp v1.2.15
 	github.com/sashabaranov/go-openai v1.37.0
 	github.com/sipcapture/heplify v1.67.0
-	golang.org/x/net v0.36.0
+	golang.org/x/net v0.38.0
 	google.golang.org/api v0.186.0
 )
 
